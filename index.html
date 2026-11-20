@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f7f1fb">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<title>EweCast · Grande Prairie</title>
+<style>
+:root{color-scheme:light;--ink:#2d203a;--muted:#62536e;--purple:#603993;--paper:#fffafd;--line:#eaddf1;font:16px/1.55 system-ui,sans-serif}
+*{box-sizing:border-box}body{margin:0;color:var(--ink);background:#f7f1fb}main{max-width:960px;margin:auto;padding:max(20px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(36px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
+header,.actions,.row{display:flex;align-items:center;justify-content:space-between;gap:12px}header{padding:0 2px 17px}.brand{font:700 32px Georgia,serif;letter-spacing:-1.5px}.brand span{color:var(--purple)}
+.hero{background:#e7d6f3;border-radius:30px;overflow:hidden;display:grid;grid-template-columns:1fr 1fr;align-items:stretch;box-shadow:0 20px 55px #50316816}.hero-copy{padding:clamp(22px,5vw,49px);align-self:center;z-index:1}.hero h1{font:700 clamp(35px,6vw,61px)/.98 Georgia,serif;letter-spacing:-.05em;margin:12px 0}.hero p{margin:10px 0}.art{margin:0;overflow:hidden;position:relative;background:#d9c3ed;aspect-ratio:1}.art img{width:100%;height:100%;object-fit:cover;display:block;animation:breathe 6s ease-in-out infinite alternate}.speaking .art img{animation:talk 1s ease-in-out infinite alternate}.speaking .art::after{content:'•••';position:absolute;bottom:13px;right:13px;background:#fff;color:var(--purple);border-radius:30px;padding:3px 12px;letter-spacing:4px}
+@keyframes breathe{to{transform:scale(1.045) translateY(-3px)}}@keyframes talk{to{transform:scale(1.055) translateY(-5px)}}@media(prefers-reduced-motion:reduce){.art img{animation:none!important}}
+button{font:700 15px system-ui;min-height:46px;padding:9px 15px;border-radius:14px;border:1px solid transparent;background:var(--purple);color:white;cursor:pointer}button.secondary{background:var(--paper);border-color:var(--line);color:var(--purple)}button:disabled{opacity:.6;cursor:default}.actions{justify-content:flex-start;flex-wrap:wrap;margin-top:17px}.caption,small{color:var(--muted)}#voice{min-height:24px;font-size:.86rem}
+section.card{background:var(--paper);border:1px solid var(--line);border-radius:23px;margin-top:16px;padding:20px}h2,h3{margin:0;font:700 25px Georgia,serif}h3{font-size:19px}.card p{margin:5px 0 10px}.temp{font:700 clamp(45px,10vw,70px)/1 Georgia,serif;white-space:nowrap;color:var(--purple)}a{color:#5b328d;text-underline-offset:3px}.alert{border-left:4px solid #b74732;padding-left:12px;margin:10px 0}.hourly{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(83px,1fr);gap:7px;overflow:auto;padding:10px 0}.hour{background:#f4eaf9;border-radius:13px;padding:8px;text-align:center;font-size:.86rem}.hour strong{display:block;font-size:1.1rem}.day{border-bottom:1px solid var(--line);padding:8px 0}.day span:first-child{min-width:69px}.day span:last-child{white-space:nowrap}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.news{padding-left:20px}.news li{margin:.55rem 0}footer{padding:18px 3px;color:var(--muted);font-size:.85rem}
+@media(max-width:630px){.hero{grid-template-columns:1fr}.art{grid-row:1;aspect-ratio:1.35}.hero-copy{padding:19px 20px}.grid{display:block}.card .row{align-items:baseline}.hero h1{margin:3px 0}.art img{object-position:center 45%}}
+</style>
+<script src="./app.js" defer></script>
+</head>
+<body><main>
+<header><div class="brand">Ewe<span>Cast</span></div><button id="refresh" class="secondary">↻ Refresh</button></header>
+<div class="hero" id="hero">
+<div class="hero-copy"><p class="caption" id="date">Local briefing</p><h1>Meet Casty.</h1><p>Your weather and news briefing for Grande Prairie, Alberta.</p>
+<div class="actions"><button id="play">▶ Start briefing</button><button id="stop" class="secondary" disabled>■ Stop</button></div><p id="voice" role="status"></p></div>
+<figure class="art"><img src="./casty.jpg" alt="Casty, a fluffy cream sheep in a lavender scarf"></figure>
+</div>
+<noscript><p>Open EweCast in Safari with JavaScript enabled to load the briefing.</p></noscript>
+<section class="card" aria-labelledby="alerts-title"><h2 id="alerts-title">Safety alerts</h2><div id="alerts" aria-live="polite">Checking weather alerts…</div><div id="emergency" aria-live="polite">Checking Alberta emergency alerts…</div>
+<small><a href="https://weather.gc.ca/index_e.html?alertTableFilterProv=AB&amp;layers=alert">Official weather alerts</a> · <a href="https://www.alberta.ca/alberta-emergency-alert">Alberta Emergency Alert</a> · <a href="https://511.alberta.ca/">Alberta 511</a><br>Updates while EweCast is open. For emergency notifications, use WeatherCAN and Alberta Emergency Alert.</small></section>
+<section class="card"><div class="row"><div><h2>Grande Prairie</h2><p id="conditions" aria-live="polite">Loading forecast…</p></div><div class="temp" id="temp">—</div></div><p id="details"></p><small id="weather-time"></small><div id="forecast" hidden><h3>Next 12 hours</h3><div id="hours" class="hourly" tabindex="0" aria-label="Scrollable hourly forecast"></div><h3>Seven days</h3><div id="days"></div></div></section>
+<section class="card"><h2>Alberta headlines</h2><p id="news-status" aria-live="polite">Checking headlines…</p><ol id="news" class="news"></ol><small><a href="https://www.cbc.ca/news/canada/edmonton">CBC Edmonton</a></small></section>
+<footer>Forecast data from <a href="https://open-meteo.com/">Open-Meteo</a>. Times are local to Grande Prairie.</footer>
+</main></body></html>

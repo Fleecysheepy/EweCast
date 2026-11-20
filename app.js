@@ -174,6 +174,33 @@ let audioContext;
 let playingSource;
 let worker;
 let pendingVoice;
+let mouthFrame;
+function restFace() {
+  cancelAnimationFrame(mouthFrame);
+  $('hero').classList.remove('speaking','device-speaking');
+  const face = $('casty-scene');
+  face.style.removeProperty('--mouth-open');
+  face.style.removeProperty('--mouth-visible');
+}
+function animateMouth(analyser, token) {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const samples = new Float32Array(analyser.fftSize);
+  const face = $('casty-scene');
+  let opening = 0;
+  function frame() {
+    if (token !== session) return;
+    analyser.getFloatTimeDomainData(samples);
+    let energy = 0;
+    for (const sample of samples) energy += sample * sample;
+    const volume = Math.sqrt(energy / samples.length);
+    const target = Math.min(1, Math.max(0, (volume - .012) * 11));
+    opening += (target - opening) * (target > opening ? .68 : .38);
+    face.style.setProperty('--mouth-open',opening.toFixed(3));
+    face.style.setProperty('--mouth-visible',Math.min(1,opening * 6).toFixed(3));
+    mouthFrame = requestAnimationFrame(frame);
+  }
+  mouthFrame = requestAnimationFrame(frame);
+}
 function endVoice(message, cancel = true) {
   session++;
   clearTimeout(timer);
@@ -184,7 +211,7 @@ function endVoice(message, cancel = true) {
   audioContext?.close().catch(()=>{});
   audioContext = undefined;
   utterance = undefined;
-  $('hero').classList.remove('speaking');
+  restFace();
   $('play').disabled = false;
   $('stop').disabled = true;
   $('device-voice').hidden = true;
@@ -210,6 +237,7 @@ function beginVoice(message) {
 }
 function markSpeaking(index, device = false) {
   $('hero').classList.add('speaking');
+  if (device) $('hero').classList.add('device-speaking');
   $('voice').textContent = (index === 3 ? 'Reading headlines' : index === 4 ? 'Wrapping up' : 'Reading weather and safety')+
     (device ? ' · Device voice' : ' · Kokoro Heart');
 }
@@ -247,6 +275,7 @@ function speakWithDevice(parts = voiceParts()) {
     utterance.onend = () => {
       if (token !== session) return;
       clearTimeout(timer);
+      restFace();
       next(index+1);
     };
     try { synth.speak(utterance); } catch { failed(); }
@@ -310,16 +339,21 @@ async function speak() {
       if (token !== session) return;
       const source = context.createBufferSource();
       source.buffer = buffer;
-      source.connect(context.destination);
+      const analyser = context.createAnalyser();
+      analyser.fftSize = 1024;
+      source.connect(analyser);
+      analyser.connect(context.destination);
       markSpeaking(parts[index].section);
       await new Promise(resolve => {
         source.onended = resolve;
         source.start();
         playingSource = source;
+        animateMouth(analyser,token);
       });
+      analyser.disconnect();
       if (token === session) {
         playingSource = undefined;
-        $('hero').classList.remove('speaking');
+        restFace();
       }
     }
     if (token === session) endVoice('Briefing complete.',false);

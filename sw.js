@@ -1,5 +1,5 @@
-const key = 'ewecast-shell-4';
-const shell = ['./', './index.html', './app.js?v=heart-2', './voice-worker.js', './manifest.webmanifest', './casty.jpg', './icon-192.png', './icon-512.png'];
+const key = 'ewecast-shell-5';
+const shell = ['./', './index.html', './app.js?v=casty-motion', './voice-worker.js', './manifest.webmanifest', './casty.jpg', './icon-192.png', './icon-512.png'];
 self.addEventListener('install', event => event.waitUntil(caches.open(key).then(cache => cache.addAll(shell)).then(() => self.skipWaiting())));
 self.addEventListener('activate', event => event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(name => name.startsWith('ewecast-shell-') && name !== key).map(name => caches.delete(name)))).then(() => self.clients.claim())));
 self.addEventListener('fetch', event => {

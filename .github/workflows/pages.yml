@@ -24,7 +24,7 @@ jobs:
       - run: python3 tools/feeds.py
       - run: |
           mkdir site
-          cp index.html app.js manifest.webmanifest sw.js feeds.json casty.jpg icon-192.png icon-512.png site/
+          cp index.html app.js voice-worker.js manifest.webmanifest sw.js feeds.json casty.jpg icon-192.png icon-512.png site/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site

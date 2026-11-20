@@ -170,28 +170,51 @@ const synth = window.speechSynthesis;
 let session = 0;
 let timer;
 let utterance;
+let audioContext;
+let worker;
+let pendingVoice;
 function endVoice(message, cancel = true) {
   session++;
   clearTimeout(timer);
   if (cancel) synth?.cancel();
+  pendingVoice?.cancel();
+  audioContext?.close().catch(()=>{});
+  audioContext = undefined;
   utterance = undefined;
   $('hero').classList.remove('speaking');
   $('play').disabled = false;
   $('stop').disabled = true;
+  $('device-voice').hidden = true;
   $('voice').textContent = message;
 }
-function speak() {
+function voiceLines() {
+  return ['Hi, it’s Casty. '+(state.weather || 'The forecast is still loading.'),
+    state.alerts || 'Weather alerts are still being checked.',
+    state.emergency || 'Alberta alerts are still being checked.',
+    state.news || 'Headlines are still loading.', 'That’s your EweCast briefing.'];
+}
+function beginVoice(message) {
+  $('play').disabled = true;
+  $('stop').disabled = false;
+  $('voice').textContent = message;
+  return ++session;
+}
+function markSpeaking(index, device = false) {
+  $('hero').classList.add('speaking');
+  $('voice').textContent = (index === 3 ? 'Reading headlines' : index === 4 ? 'Wrapping up' : 'Reading weather and safety')+
+    (device ? ' · Device voice' : ' · Kokoro Heart');
+}
+function speakWithDevice() {
+  endVoice('');
   if (!synth || !window.SpeechSynthesisUtterance) {
     endVoice('Spoken briefings are unavailable in this browser.');
     return;
   }
-  const lines = ['Hi, it’s Casty.',state.weather || 'The forecast is still loading.',state.alerts || 'Weather alerts are still being checked.',state.emergency || 'Alberta alerts are still being checked.',state.news || 'Headlines are still loading.','That’s your EweCast briefing.'];
-  const token = ++session;
+  const lines = voiceLines();
+  const token = beginVoice('Starting device voice…');
   const voices = synth.getVoices();
-  const voice = voices.find(v=>v.lang==='en-CA') || voices.find(v=>v.lang.startsWith('en'));
-  $('play').disabled = true;
-  $('stop').disabled = false;
-  $('voice').textContent = 'Starting voice…';
+  const voice = voices.find(v=>/^Moira|^Karen|^Samantha|^Ava|^Serena/i.test(v.name) && v.lang.startsWith('en')) ||
+    voices.find(v=>v.lang==='en-CA') || voices.find(v=>v.lang.startsWith('en'));
   function next(index) {
     if (token !== session) return;
     if (index === lines.length) { endVoice('Briefing complete.',false); return; }
@@ -205,8 +228,7 @@ function speak() {
       if (token !== session) return;
       clearTimeout(timer);
       timer = setTimeout(failed,12000+lines[index].length*190);
-      $('hero').classList.add('speaking');
-      $('voice').textContent = index===4?'Reading headlines…':'Reading weather and safety…';
+      markSpeaking(index,true);
     };
     utterance.onerror = failed;
     utterance.onend = () => {
@@ -218,7 +240,70 @@ function speak() {
   }
   next(0);
 }
+function generateVoice(text, firstSection) {
+  return new Promise((resolve,reject) => {
+    const starting = !worker;
+    worker ||= new Worker('./voice-worker.js',{type:'module'});
+    const timeout = setTimeout(() => fail('Voice generation timed out'), starting ? 150000 : 35000);
+    function cleanup() {
+      clearTimeout(timeout);
+      pendingVoice = undefined;
+      worker.onmessage = null;
+      worker.onerror = null;
+      worker.onmessageerror = null;
+    }
+    function fail(message) {
+      cleanup();
+      worker.terminate();
+      worker = undefined;
+      reject(new Error(message));
+    }
+    pendingVoice = {cancel: () => fail('Stopped')};
+    worker.onmessage = ({data}) => {
+      if (data.failed) { fail('Voice generation failed'); return; }
+      if (data.wav) { cleanup(); resolve(data.wav); return; }
+      if (firstSection && data.progress !== undefined) $('voice').textContent = 'Downloading Casty’s voice… '+data.progress+'%';
+      if (firstSection && data.generating) $('voice').textContent = 'Preparing Casty’s briefing…';
+    };
+    worker.onerror = () => fail('Voice worker failed');
+    worker.onmessageerror = () => fail('Voice worker message failed');
+    try { worker.postMessage({text}); } catch { fail('Voice worker unavailable'); }
+  });
+}
+async function speak() {
+  const token = beginVoice('Loading Casty’s voice…');
+  $('device-voice').hidden = false;
+  const lines = voiceLines();
+  const Audio = window.AudioContext || window.webkitAudioContext;
+  try {
+    const context = audioContext = new Audio();
+    await context.resume(); // Unlock audio during the Start briefing tap.
+    for (const [index,line] of lines.entries()) {
+      if (token !== session) return;
+      if (index) $('voice').textContent = 'Preparing the next part…';
+      const wav = await generateVoice(line,index===0);
+      if (token !== session) return;
+      const buffer = await context.decodeAudioData(wav);
+      if (token !== session) return;
+      const source = context.createBufferSource();
+      source.buffer = buffer;
+      source.connect(context.destination);
+      markSpeaking(index);
+      await new Promise(resolve => {
+        source.onended = resolve;
+        source.start();
+      });
+      if (token === session) $('hero').classList.remove('speaking');
+    }
+    if (token === session) endVoice('Briefing complete.',false);
+  } catch {
+    if (token !== session) return;
+    endVoice('Casty’s voice is unavailable. Tap Use device voice to hear the briefing.');
+    $('device-voice').hidden = false;
+  }
+}
 $('play').addEventListener('click',speak);
+$('device-voice').addEventListener('click',speakWithDevice);
 $('stop').addEventListener('click',()=>endVoice('Briefing stopped.'));
 $('refresh').addEventListener('click',refresh);
 addEventListener('online',refresh);

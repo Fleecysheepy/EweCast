@@ -171,6 +171,7 @@ let session = 0;
 let timer;
 let utterance;
 let audioContext;
+let playingSource;
 let worker;
 let pendingVoice;
 function endVoice(message, cancel = true) {
@@ -178,6 +179,8 @@ function endVoice(message, cancel = true) {
   clearTimeout(timer);
   if (cancel) synth?.cancel();
   pendingVoice?.cancel();
+  playingSource?.stop();
+  playingSource = undefined;
   audioContext?.close().catch(()=>{});
   audioContext = undefined;
   utterance = undefined;
@@ -292,8 +295,12 @@ async function speak() {
       await new Promise(resolve => {
         source.onended = resolve;
         source.start();
+        playingSource = source;
       });
-      if (token === session) $('hero').classList.remove('speaking');
+      if (token === session) {
+        playingSource = undefined;
+        $('hero').classList.remove('speaking');
+      }
     }
     if (token === session) endVoice('Briefing complete.',false);
   } catch {

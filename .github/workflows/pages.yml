@@ -15,9 +15,11 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    # A missed feed refresh leaves the previous site online. The app checks feed age.
+    continue-on-error: ${{ github.event_name == 'schedule' }}
     environment:
       name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
+      url: ${{ steps.deploy.outputs.page_url || steps.retry.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
@@ -25,9 +27,22 @@ jobs:
       - run: |
           mkdir site
           cp index.html app.js voice-worker.js manifest.webmanifest sw.js feeds.json casty.jpg icon-192.png icon-512.png site/
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: site
-      - uses: actions/deploy-pages@v4
+      - uses: actions/deploy-pages@v5
         id: deploy
+        continue-on-error: true
+      - name: Wait for GitHub to index the uploaded artifact
+        if: steps.deploy.outcome == 'failure'
+        run: sleep 20
+      - name: Retry Pages deployment
+        if: steps.deploy.outcome == 'failure'
+        uses: actions/deploy-pages@v5
+        id: retry
+      - name: Report a missed scheduled refresh
+        if: failure() && github.event_name == 'schedule'
+        run: |
+          echo "::warning::Scheduled refresh failed. The last published EweCast build remains online."
+          echo 'Scheduled refresh failed. The previous feed snapshot remains published and EweCast checks its age before using it.' >> "$GITHUB_STEP_SUMMARY"
 

@@ -54,6 +54,8 @@ function priorWeather() {
 function renderWeather(data, at, cached) {
   const {current:c,hourly:h,daily:d} = data;
   if (!Number.isFinite(c?.temperature_2m) || !h?.time?.length || !d?.time?.length) throw new Error('Incomplete forecast');
+  const feelsLike = Number.isFinite(c.apparent_temperature) ? c.apparent_temperature : c.temperature_2m;
+  $('hero').dataset.outfit = feelsLike <= 0 ? 'cold' : feelsLike >= 25 ? 'hot' : 'mild';
   $('temp').textContent = degree(c.temperature_2m)+'C';
   $('conditions').textContent = condition(c.weather_code);
   $('details').textContent = 'Feels like '+degree(c.apparent_temperature)+' · Wind '+number(c.wind_speed_10m,' km/h');
@@ -91,6 +93,7 @@ async function loadWeather() {
     $('details').textContent = '';
     $('weather-time').textContent = '';
     $('forecast').hidden = true;
+    delete $('hero').dataset.outfit;
     state.weather = 'The Grande Prairie forecast is unavailable.';
   }
 }
@@ -213,6 +216,7 @@ function endVoice(message, cancel = true) {
   audioContext = undefined;
   utterance = undefined;
   remainingParts = undefined;
+  $('hero').classList.remove('briefing-active');
   restFace();
   $('play').disabled = false;
   $('stop').disabled = true;
@@ -238,7 +242,7 @@ function beginVoice(message) {
   return ++session;
 }
 function markSpeaking(index, device = false) {
-  $('hero').classList.add('speaking');
+  $('hero').classList.add('speaking','briefing-active');
   if (device) $('hero').classList.add('device-speaking');
   $('voice').textContent = (index === 3 ? 'Reading headlines' : index === 4 ? 'Wrapping up' : 'Reading weather and safety')+
     (device ? ' · Device voice' : ' · Kokoro Heart');

@@ -32,20 +32,46 @@ header,.actions,.row{display:flex;align-items:center;justify-content:space-betwe
   25.5%,69.5%,75.5%{opacity:1;transform:scaleY(1)}
 }
 @keyframes device-nod{50%{translate:0 -.55%}}
+.casty-outfit{position:absolute;inset:0;opacity:0;visibility:hidden;pointer-events:none}
+.briefing-active[data-outfit="cold"] .winter-outfit,
+.briefing-active[data-outfit="hot"] .summer-outfit{opacity:1;visibility:visible;animation:outfit-arrive .55s ease-out both}
+.casty-hat,.casty-coat,.casty-shades,.casty-drink{position:absolute}
+.casty-hat{left:28%;top:8%;width:39%;height:17%;rotate:-12deg;border-radius:50% 50% 15% 15%;background:repeating-linear-gradient(100deg,#4b346b 0 7%,#694f87 8% 12%);box-shadow:inset 0 9px 12px #bd9cda60,0 4px 7px #331e493d}
+.casty-hat::before{content:'';position:absolute;left:43%;top:-25%;width:22%;aspect-ratio:1;border-radius:50%;background:radial-gradient(at 38% 30%,#f8e4ff,#9d79bd 70%);box-shadow:0 3px 5px #331e4955}
+.casty-hat::after{content:'';position:absolute;inset:auto -3% -3%;height:30%;border-radius:20%;background:repeating-linear-gradient(90deg,#795498 0 5%,#9470b1 6% 10%);box-shadow:0 2px 4px #331e4966}
+.casty-coat{left:30%;top:57%;width:36%;height:18%;border-radius:20% 18% 30% 26%;rotate:-7deg;background:linear-gradient(95deg,#524074,#b391cd 50%,#685187);box-shadow:inset 0 -4px 7px #44335d77,0 2px 6px #331e4933}
+.casty-coat::after{content:'';position:absolute;left:47%;top:6%;width:5%;height:85%;background:repeating-linear-gradient(#e9ccec 0 9%,#6b4f8d 10% 19%);border-radius:30%}
+.casty-shades{left:35.5%;top:28.4%;width:31%;height:9%;rotate:-12deg;background:linear-gradient(#3c2d4e,#3c2d4e) center 33% / 40% 13% no-repeat}
+.casty-shades::before,.casty-shades::after{content:'';position:absolute;top:0;width:43%;height:94%;border-radius:21% 28% 48% 44%;border:2px solid #43334f;background:linear-gradient(143deg,#958abc 12%,#4c416d 42%,#241d39 65%);box-shadow:0 2px 4px #36244655}
+.casty-shades::before{left:0}.casty-shades::after{right:0}
+.casty-drink{left:69%;top:61%;width:12%;height:17%;rotate:10deg;border-radius:9% 9% 26% 26%;background:linear-gradient(90deg,#d36c79,#ffb098 48%,#e47f76);box-shadow:inset 0 4px #fff3d6,0 4px 5px #3f244b55}
+.casty-drink::before{content:'';position:absolute;left:62%;top:-48%;width:11%;height:51%;rotate:10deg;background:repeating-linear-gradient(#fdf5ee 0 16%,#945caf 16% 33%);border-radius:2px}
+.casty-drink::after{content:'';position:absolute;left:24%;top:37%;width:50%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,#ffdf97 40%,#fcaa50 43% 57%,#fff0bf 61%)}
+.briefing-active[data-outfit="cold"] .casty-scene{animation:breathe 5s ease-in-out infinite alternate,shiver 3.8s infinite}
+@keyframes outfit-arrive{from{opacity:0;transform:translateY(-4%) scale(.96)}to{opacity:1;transform:none}}
+@keyframes shiver{0%,66%,90%,100%{translate:0 0}70%,78%,86%{translate:-.65% -.3%}74%,82%{translate:.65% .15%}}
 @keyframes device-talk{0%,100%{opacity:0;transform:rotate(-10deg) scale(.92,.12)}22%,72%{opacity:1;transform:rotate(-10deg) scale(1,.78)}48%{opacity:.3;transform:rotate(-10deg) scale(.92,.26)}}
-@media(prefers-reduced-motion:reduce){.casty-scene,.casty-eye,.device-speaking .casty-mouth{animation:none!important}.casty-scene{translate:none;transition:none}.casty-mouth{visibility:hidden}}
+@media(prefers-reduced-motion:reduce){.casty-scene,.casty-eye,.casty-outfit,.device-speaking .casty-mouth{animation:none!important}.casty-scene{translate:none;transition:none}.casty-mouth{visibility:hidden}}
 button{font:700 15px system-ui;min-height:46px;padding:9px 15px;border-radius:14px;border:1px solid transparent;background:var(--purple);color:white;cursor:pointer}button.secondary{background:var(--paper);border-color:var(--line);color:var(--purple)}button:disabled{opacity:.6;cursor:default}.actions{justify-content:flex-start;flex-wrap:wrap;margin-top:17px}.caption,small{color:var(--muted)}#voice{min-height:24px;font-size:.86rem}
 section.card{background:var(--paper);border:1px solid var(--line);border-radius:23px;margin-top:16px;padding:20px}h2,h3{margin:0;font:700 25px Georgia,serif}h3{font-size:19px}.card p{margin:5px 0 10px}.temp{font:700 clamp(45px,10vw,70px)/1 Georgia,serif;white-space:nowrap;color:var(--purple)}a{color:#5b328d;text-underline-offset:3px}.alert{border-left:4px solid #b74732;padding-left:12px;margin:10px 0}.hourly{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(83px,1fr);gap:7px;overflow:auto;padding:10px 0}.hour{background:#f4eaf9;border-radius:13px;padding:8px;text-align:center;font-size:.86rem}.hour strong{display:block;font-size:1.1rem}.day{border-bottom:1px solid var(--line);padding:8px 0}.day span:first-child{min-width:69px}.day span:last-child{white-space:nowrap}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.news{padding-left:20px}.news li{margin:.55rem 0}footer{padding:18px 3px;color:var(--muted);font-size:.85rem}
 @media(max-width:630px){.hero{grid-template-columns:minmax(0,1fr)}.art{grid-row:1}.hero-copy{padding:19px 20px}.grid{display:block}.card .row{align-items:baseline}.hero h1{margin:3px 0}}
 </style>
-<script src="./app.js?v=briefing-resume" defer></script>
+<script src="./app.js?v=weather-outfits" defer></script>
 </head>
 <body><main>
 <header><div class="brand">Ewe<span>Cast</span></div><button id="refresh" class="secondary">↻ Refresh</button></header>
 <div class="hero" id="hero">
 <div class="hero-copy"><p class="caption" id="date">Local briefing</p><h1>Meet Casty.</h1><p>Your weather and news briefing for Grande Prairie, Alberta.</p>
 <div class="actions"><button id="play">▶ Start briefing</button><button id="stop" class="secondary" disabled>■ Stop</button><button id="device-voice" class="secondary" hidden>Use device voice</button></div><p id="voice" role="status"></p></div>
-<figure class="art"><div class="casty-scene" id="casty-scene"><img src="./casty.jpg" width="900" height="900" alt="Casty, a fluffy cream sheep in a lavender scarf"><span class="casty-eye left" aria-hidden="true"></span><span class="casty-eye right" aria-hidden="true"></span><span class="casty-mouth" aria-hidden="true"></span></div></figure>
+<figure class="art">
+  <div class="casty-scene" id="casty-scene">
+    <img src="./casty.jpg" width="900" height="900" alt="Casty, a fluffy cream sheep in a lavender scarf">
+    <span class="casty-eye left" aria-hidden="true"></span><span class="casty-eye right" aria-hidden="true"></span>
+    <span class="casty-mouth" aria-hidden="true"></span>
+    <div class="casty-outfit winter-outfit" aria-hidden="true"><span class="casty-coat"></span><span class="casty-hat"></span></div>
+    <div class="casty-outfit summer-outfit" aria-hidden="true"><span class="casty-shades"></span><span class="casty-drink"></span></div>
+  </div>
+</figure>
 </div>
 <noscript><p>Open EweCast in Safari with JavaScript enabled to load the briefing.</p></noscript>
 <section class="card" aria-labelledby="alerts-title"><h2 id="alerts-title">Safety alerts</h2><div id="alerts" aria-live="polite">Checking weather alerts…</div><div id="emergency" aria-live="polite">Checking Alberta emergency alerts…</div>

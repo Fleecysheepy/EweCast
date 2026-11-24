@@ -175,6 +175,7 @@ let playingSource;
 let worker;
 let pendingVoice;
 let mouthFrame;
+let remainingParts;
 function restFace() {
   cancelAnimationFrame(mouthFrame);
   $('hero').classList.remove('speaking','device-speaking');
@@ -211,6 +212,7 @@ function endVoice(message, cancel = true) {
   audioContext?.close().catch(()=>{});
   audioContext = undefined;
   utterance = undefined;
+  remainingParts = undefined;
   restFace();
   $('play').disabled = false;
   $('stop').disabled = true;
@@ -255,13 +257,17 @@ function speakWithDevice(parts = voiceParts()) {
     if (token !== session) return;
     if (index === parts.length) { endVoice('Briefing complete.',false); return; }
     const {text,section} = parts[index];
+    remainingParts = parts.slice(index);
     utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = voice?.lang || 'en-CA';
     if (voice) utterance.voice = voice;
     utterance.rate = .97;
     const failed = () => {
       if (token !== session) return;
-      endVoice('Tap Use device voice to start playback, or check your media volume.');
+      const remaining = remainingParts;
+      endVoice('Playback paused. Tap Continue with device voice to pick up here.');
+      remainingParts = remaining;
+      $('device-voice').textContent = 'Continue with device voice';
       $('device-voice').hidden = false;
     };
     timer = setTimeout(failed,6500);
@@ -318,9 +324,11 @@ function generateVoice(text, firstSection) {
 }
 async function speak() {
   const token = beginVoice('Loading Casty’s voice…');
+  $('device-voice').textContent = 'Use device voice';
   $('device-voice').hidden = false;
   const parts = voiceParts();
   let index = 0;
+  remainingParts = parts;
   const Audio = window.AudioContext || window.webkitAudioContext;
   try {
     const context = audioContext = new Audio();
@@ -330,13 +338,30 @@ async function speak() {
     await context.resume(); // Unlock audio during the Start briefing tap.
     if (token !== session) return;
     clearTimeout(timer);
+    // Settle prefetched work immediately so a slow worker can fail during playback.
+    const prepare = position => generateVoice(parts[position].text,position===0)
+      .then(async wav => {
+        let watchdog;
+        try {
+          return await Promise.race([
+            context.decodeAudioData(wav),
+            new Promise((_,reject) => {
+              watchdog = setTimeout(() => reject(new Error('Audio decoding stalled')),4500);
+            })
+          ]);
+        } finally {
+          clearTimeout(watchdog);
+        }
+      })
+      .then(buffer => ({buffer}),error => ({error}));
+    let prepared = prepare(0);
     for (; index < parts.length; index++) {
       if (token !== session) return;
       if (index) $('voice').textContent = 'Preparing the next part…';
-      const wav = await generateVoice(parts[index].text,index===0);
+      const {buffer,error} = await prepared;
       if (token !== session) return;
-      const buffer = await context.decodeAudioData(wav);
-      if (token !== session) return;
+      if (error) throw error;
+      if (index+1 < parts.length) prepared = prepare(index+1);
       const source = context.createBufferSource();
       source.buffer = buffer;
       const analyser = context.createAnalyser();
@@ -344,15 +369,26 @@ async function speak() {
       source.connect(analyser);
       analyser.connect(context.destination);
       markSpeaking(parts[index].section);
-      await new Promise(resolve => {
-        source.onended = resolve;
-        source.start();
-        playingSource = source;
-        animateMouth(analyser,token);
-      });
-      analyser.disconnect();
+      try {
+        await new Promise((resolve,reject) => {
+          const watchdog = setTimeout(() => reject(new Error('Audio playback stalled')),
+            Math.ceil(buffer.duration*1000)+3500);
+          source.onended = () => { clearTimeout(watchdog); resolve(); };
+          try {
+            source.start();
+            playingSource = source;
+            animateMouth(analyser,token);
+          } catch (error) {
+            clearTimeout(watchdog);
+            reject(error);
+          }
+        });
+      } finally {
+        analyser.disconnect();
+      }
       if (token === session) {
         playingSource = undefined;
+        remainingParts = parts.slice(index+1);
         restFace();
       }
     }
@@ -363,7 +399,7 @@ async function speak() {
   }
 }
 $('play').addEventListener('click',speak);
-$('device-voice').addEventListener('click',()=>speakWithDevice());
+$('device-voice').addEventListener('click',()=>speakWithDevice(remainingParts));
 $('stop').addEventListener('click',()=>endVoice('Briefing stopped.'));
 $('refresh').addEventListener('click',refresh);
 addEventListener('online',refresh);

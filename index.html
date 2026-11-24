@@ -12,21 +12,21 @@
 :root{color-scheme:light;--ink:#2d203a;--muted:#62536e;--purple:#603993;--paper:#fffafd;--line:#eaddf1;font:16px/1.55 system-ui,sans-serif}
 *{box-sizing:border-box}body{margin:0;color:var(--ink);background:#f7f1fb}main{max-width:960px;margin:auto;padding:max(20px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(36px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
 header,.actions,.row{display:flex;align-items:center;justify-content:space-between;gap:12px}header{padding:0 2px 17px}.brand{font:700 32px Georgia,serif;letter-spacing:-1.5px}.brand span{color:var(--purple)}
-.hero{background:#e7d6f3;border-radius:30px;overflow:hidden;display:grid;grid-template-columns:1fr 1fr;align-items:stretch;box-shadow:0 20px 55px #50316816}.hero-copy{padding:clamp(22px,5vw,49px);align-self:center;z-index:1}.hero h1{font:700 clamp(35px,6vw,61px)/.98 Georgia,serif;letter-spacing:-.05em;margin:12px 0}.hero p{margin:10px 0}.art{margin:0;overflow:hidden;position:relative;background:#d9c3ed;aspect-ratio:1}.casty-scene{position:absolute;width:100%;aspect-ratio:1;top:45%;left:0;transform:translateY(-45%);transform-origin:53% 41%;animation:breathe 5s ease-in-out infinite alternate}
-.casty-scene img{width:100%;height:100%;display:block}
+.hero{background:#e7d6f3;border-radius:30px;overflow:hidden;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;box-shadow:0 20px 55px #50316816}.hero-copy{padding:clamp(22px,5vw,49px);align-self:center;z-index:1}.hero h1{font:700 clamp(35px,6vw,61px)/.98 Georgia,serif;letter-spacing:-.05em;margin:12px 0}.hero p{margin:10px 0}.art{margin:0;overflow:hidden;position:relative;background:#d9c3ed}.casty-scene{position:relative;width:100%;transform-origin:53% 41%;animation:breathe 5s ease-in-out infinite alternate}
+.casty-scene img{width:100%;height:auto;display:block}
 .casty-eye,.casty-mouth{position:absolute;pointer-events:none}
 .casty-eye{width:8.4%;height:6.6%;background:linear-gradient(145deg,#e7bf9f,#f3cfb0);border-radius:70% 65% 49% 47%;box-shadow:inset 0 -2px #673125;opacity:0;animation:blink 6.8s infinite}
 .casty-eye.left{top:33%;left:37.6%;rotate:-14deg}
 .casty-eye.right{top:29%;left:56.1%;rotate:-11deg;scale:.92}
 .casty-mouth{top:39.6%;left:49.4%;width:8%;height:4.6%;border-radius:24% 24% 49% 49%;background:radial-gradient(ellipse at 55% 105%,#d78182 0 29%,transparent 32%),linear-gradient(#4b211e,#733a39);box-shadow:inset 0 2px 3px #31171887;transform-origin:50% 12%;transform:rotate(-10deg) scale(.95,var(--mouth-open,0));opacity:var(--mouth-visible,0)}
 .device-speaking .casty-mouth{animation:device-talk .52s infinite}
-@keyframes breathe{to{transform:translateY(-45%) scale(1.025)}}
+@keyframes breathe{to{transform:scale(1.025)}}
 @keyframes blink{0%,92%,96%,100%{opacity:0;transform:scaleY(.35)}94%{opacity:1;transform:scaleY(1)}}
 @keyframes device-talk{0%,100%{opacity:0;transform:rotate(-10deg) scale(.92,.12)}22%,72%{opacity:1;transform:rotate(-10deg) scale(1,.78)}48%{opacity:.3;transform:rotate(-10deg) scale(.92,.26)}}
 @media(prefers-reduced-motion:reduce){.casty-scene,.casty-eye,.device-speaking .casty-mouth{animation:none!important}.casty-mouth{visibility:hidden}}
 button{font:700 15px system-ui;min-height:46px;padding:9px 15px;border-radius:14px;border:1px solid transparent;background:var(--purple);color:white;cursor:pointer}button.secondary{background:var(--paper);border-color:var(--line);color:var(--purple)}button:disabled{opacity:.6;cursor:default}.actions{justify-content:flex-start;flex-wrap:wrap;margin-top:17px}.caption,small{color:var(--muted)}#voice{min-height:24px;font-size:.86rem}
 section.card{background:var(--paper);border:1px solid var(--line);border-radius:23px;margin-top:16px;padding:20px}h2,h3{margin:0;font:700 25px Georgia,serif}h3{font-size:19px}.card p{margin:5px 0 10px}.temp{font:700 clamp(45px,10vw,70px)/1 Georgia,serif;white-space:nowrap;color:var(--purple)}a{color:#5b328d;text-underline-offset:3px}.alert{border-left:4px solid #b74732;padding-left:12px;margin:10px 0}.hourly{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(83px,1fr);gap:7px;overflow:auto;padding:10px 0}.hour{background:#f4eaf9;border-radius:13px;padding:8px;text-align:center;font-size:.86rem}.hour strong{display:block;font-size:1.1rem}.day{border-bottom:1px solid var(--line);padding:8px 0}.day span:first-child{min-width:69px}.day span:last-child{white-space:nowrap}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.news{padding-left:20px}.news li{margin:.55rem 0}footer{padding:18px 3px;color:var(--muted);font-size:.85rem}
-@media(max-width:630px){.hero{grid-template-columns:1fr}.art{grid-row:1;aspect-ratio:1.35}.hero-copy{padding:19px 20px}.grid{display:block}.card .row{align-items:baseline}.hero h1{margin:3px 0}}
+@media(max-width:630px){.hero{grid-template-columns:minmax(0,1fr)}.art{grid-row:1}.hero-copy{padding:19px 20px}.grid{display:block}.card .row{align-items:baseline}.hero h1{margin:3px 0}}
 </style>
 <script src="./app.js?v=casty-motion" defer></script>
 </head>
@@ -35,7 +35,7 @@ section.card{background:var(--paper);border:1px solid var(--line);border-radius:
 <div class="hero" id="hero">
 <div class="hero-copy"><p class="caption" id="date">Local briefing</p><h1>Meet Casty.</h1><p>Your weather and news briefing for Grande Prairie, Alberta.</p>
 <div class="actions"><button id="play">▶ Start briefing</button><button id="stop" class="secondary" disabled>■ Stop</button><button id="device-voice" class="secondary" hidden>Use device voice</button></div><p id="voice" role="status"></p></div>
-<figure class="art"><div class="casty-scene" id="casty-scene"><img src="./casty.jpg" alt="Casty, a fluffy cream sheep in a lavender scarf"><span class="casty-eye left" aria-hidden="true"></span><span class="casty-eye right" aria-hidden="true"></span><span class="casty-mouth" aria-hidden="true"></span></div></figure>
+<figure class="art"><div class="casty-scene" id="casty-scene"><img src="./casty.jpg" width="900" height="900" alt="Casty, a fluffy cream sheep in a lavender scarf"><span class="casty-eye left" aria-hidden="true"></span><span class="casty-eye right" aria-hidden="true"></span><span class="casty-mouth" aria-hidden="true"></span></div></figure>
 </div>
 <noscript><p>Open EweCast in Safari with JavaScript enabled to load the briefing.</p></noscript>
 <section class="card" aria-labelledby="alerts-title"><h2 id="alerts-title">Safety alerts</h2><div id="alerts" aria-live="polite">Checking weather alerts…</div><div id="emergency" aria-live="polite">Checking Alberta emergency alerts…</div>
